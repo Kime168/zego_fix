@@ -203,7 +203,7 @@ class ZegoUIKitPrebuiltCallConfig {
       );
 
   ZegoUIKitPrebuiltCallConfig({
-    this.turnOnCameraWhenJoining = true,
+    this.turnOnCameraWhenJoining = false,
     this.useFrontCameraWhenJoining = true,
     this.turnOnMicrophoneWhenJoining = true,
     this.useSpeakerWhenJoining = false,
@@ -726,6 +726,8 @@ extension ZegoUIKitPrebuiltCallConfigExtension on ZegoUIKitPrebuiltCallConfig {
                       ZegoCallMenuBarButtonName.switchAudioOutputButton,
                     ]
                   : [
+                      ZegoCallMenuBarButtonName.toggleCameraButton,
+                      ZegoCallMenuBarButtonName.switchCameraButton,
                       ZegoCallMenuBarButtonName.toggleMicrophoneButton,
                       ZegoCallMenuBarButtonName.hangUpButton,
                       ZegoCallMenuBarButtonName.switchAudioOutputButton,
@@ -742,6 +744,8 @@ extension ZegoUIKitPrebuiltCallConfigExtension on ZegoUIKitPrebuiltCallConfig {
                       ZegoCallMenuBarButtonName.switchAudioOutputButton,
                     ]
                   : [
+                      ZegoCallMenuBarButtonName.toggleCameraButton,
+                      ZegoCallMenuBarButtonName.switchCameraButton,
                       ZegoCallMenuBarButtonName.toggleMicrophoneButton,
                       ZegoCallMenuBarButtonName.hangUpButton,
                       ZegoCallMenuBarButtonName.switchAudioOutputButton,

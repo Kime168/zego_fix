@@ -610,15 +610,13 @@ class _ZegoUIKitPrebuiltCallState extends State<ZegoUIKitPrebuiltCall>
           ..turnMicrophoneOn(config.turnOnMicrophoneWhenJoining)
           ..setAudioOutputToSpeaker(config.useSpeakerWhenJoining);
 
-        await ZegoUIKit()
-            .joinRoom(
+        await ZegoUIKit().joinRoom(
           widget.callID,
           token: widget.token,
 
           /// accept offline call invitation on android, will join in advance
           isSimulated: isFromAcceptedAndroidOfflineInvitation,
-        )
-            .then((result) async {
+        ).then((result) async {
           if (result.errorCode != 0) {
             ZegoLoggerService.logError(
               'failed to login room:${result.errorCode},${result.extendedData}',

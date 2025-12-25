@@ -7,10 +7,12 @@ import 'package:flutter/scheduler.dart';
 
 // Package imports:
 import 'package:zego_uikit/zego_uikit.dart';
+import 'package:get/get.dart';
 
 // Project imports:
 import 'package:zego_uikit_prebuilt_call/src/call.dart';
 import 'package:zego_uikit_prebuilt_call/src/invitation/config.defines.dart';
+import 'package:zego_uikit_prebuilt_call/src/invitation/defines.dart';
 import 'package:zego_uikit_prebuilt_call/src/invitation/internal/defines.dart';
 import 'package:zego_uikit_prebuilt_call/src/invitation/pages/calling/machine.dart';
 import 'package:zego_uikit_prebuilt_call/src/invitation/pages/calling/page/invitee_page.dart';
@@ -188,6 +190,8 @@ class _ZegoCallingPageState extends State<ZegoCallingPage> {
       widget.callInvitationData.uiConfig.inviter,
       widget.callInvitationData.uiConfig.invitee,
       localUserIsInviter: localUserIsInviter,
+      isVideoCall: widget.pageManager.invitationData.type ==
+          ZegoCallInvitationType.videoCall,
     );
 
     if (Platform.isIOS) {
@@ -262,10 +266,11 @@ class _ZegoCallingPageState extends State<ZegoCallingPage> {
       plugins: widget.callInvitationData.plugins,
     );
 
-    return widget.callInvitationData.uiConfig.withSafeArea
-        ? SafeArea(
-            child: prebuiltCall,
-          )
-        : prebuiltCall;
+    return Container(
+      color: Color(0xff4A4B4C),
+      width: Get.width,
+      height: Get.height,
+      child: prebuiltCall,
+    );
   }
 }

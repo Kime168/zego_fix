@@ -36,12 +36,18 @@ class ZegoUIKitPrebuiltCallingConfig {
     ZegoCallInvitationInviterUIConfig? inviter,
     ZegoCallInvitationInviteeUIConfig? invitee, {
     required bool localUserIsInviter,
+    required bool isVideoCall,
   }) {
-    config.turnOnCameraWhenJoining = turnOnCameraWhenJoining ??
-        (localUserIsInviter
-            ? inviter?.defaultCameraOn
-            : invitee?.defaultCameraOn) ??
-        config.turnOnCameraWhenJoining;
+    if (isVideoCall) {
+      config.turnOnCameraWhenJoining = turnOnCameraWhenJoining ??
+          (localUserIsInviter
+              ? inviter?.defaultCameraOn
+              : invitee?.defaultCameraOn) ??
+          config.turnOnCameraWhenJoining;
+    } else {
+      config.turnOnCameraWhenJoining =
+          turnOnCameraWhenJoining ?? config.turnOnCameraWhenJoining;
+    }
     config.useFrontCameraWhenJoining =
         useFrontCameraWhenJoining ?? config.useFrontCameraWhenJoining;
 
