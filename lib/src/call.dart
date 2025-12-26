@@ -13,12 +13,15 @@ import 'package:flutter/material.dart';
 import 'package:floating/floating.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:zego_uikit/zego_uikit.dart';
+import 'package:zego_express_engine/zego_express_engine.dart';
 
 // Project imports:
 import 'package:zego_uikit_prebuilt_call/src/components/components.dart';
 import 'package:zego_uikit_prebuilt_call/src/components/duration_time_board.dart';
 import 'package:zego_uikit_prebuilt_call/src/components/mini_call.dart';
+import 'package:zego_uikit_prebuilt_call/src/components/network_monitor.dart';
 import 'package:zego_uikit_prebuilt_call/src/components/pop_up_manager.dart';
+import 'package:zego_uikit_prebuilt_call/src/components/reconnecting_overlay.dart';
 import 'package:zego_uikit_prebuilt_call/src/config.dart';
 import 'package:zego_uikit_prebuilt_call/src/controller.dart';
 import 'package:zego_uikit_prebuilt_call/src/controller/private/pip/pip_android.dart';
@@ -171,15 +174,20 @@ class _ZegoUIKitPrebuiltCallState extends State<ZegoUIKitPrebuiltCall>
   void initState() {
     super.initState();
 
-    ZegoUIKit().reporter().create(
-      appID: widget.appID,
-      signOrToken: widget.appSign.isNotEmpty ? widget.appSign : widget.token,
-      params: {
-        ZegoCallReporter.eventKeyKitVersion:
-            ZegoUIKitPrebuiltCallController().version,
-        ZegoUIKitReporter.eventKeyUserID: widget.userID,
-      }, userID: '',
-    ).then((_) {
+    ZegoUIKit()
+        .reporter()
+        .create(
+          appID: widget.appID,
+          signOrToken:
+              widget.appSign.isNotEmpty ? widget.appSign : widget.token,
+          params: {
+            ZegoCallReporter.eventKeyKitVersion:
+                ZegoUIKitPrebuiltCallController().version,
+            ZegoUIKitReporter.eventKeyUserID: widget.userID,
+          },
+          userID: '',
+        )
+        .then((_) {
       ZegoCallReporter().report(
         event: ZegoCallReporter.eventInit,
         params: {
@@ -306,6 +314,7 @@ class _ZegoUIKitPrebuiltCallState extends State<ZegoUIKitPrebuiltCall>
 
   @override
   void dispose() {
+    ZegoNetworkMonitor().uninit();
     super.dispose();
 
     _eventListener?.uninit();
@@ -486,6 +495,7 @@ class _ZegoUIKitPrebuiltCallState extends State<ZegoUIKitPrebuiltCall>
                         else
                           Container(),
                         foreground(context, constraints.maxHeight),
+                        const ZegoReconnectingOverlay(),
                       ],
                     ),
                   );
@@ -519,6 +529,7 @@ class _ZegoUIKitPrebuiltCallState extends State<ZegoUIKitPrebuiltCall>
       showCameraButton: false,
       showMicrophoneButton: false,
       showLeaveButton: false,
+      foreground: const ZegoReconnectingOverlay(),
     );
   }
 
@@ -587,6 +598,7 @@ class _ZegoUIKitPrebuiltCallState extends State<ZegoUIKitPrebuiltCall>
         withoutCreateEngine: isFromAcceptedAndroidOfflineInvitation,
       )
           .then((_) async {
+        ZegoNetworkMonitor().init();
         await initAdvanceEffectsPlugins();
 
         /// second set after create express
@@ -610,13 +622,15 @@ class _ZegoUIKitPrebuiltCallState extends State<ZegoUIKitPrebuiltCall>
           ..turnMicrophoneOn(config.turnOnMicrophoneWhenJoining)
           ..setAudioOutputToSpeaker(config.useSpeakerWhenJoining);
 
-        await ZegoUIKit().joinRoom(
+        await ZegoUIKit()
+            .joinRoom(
           widget.callID,
           token: widget.token,
 
           /// accept offline call invitation on android, will join in advance
           isSimulated: isFromAcceptedAndroidOfflineInvitation,
-        ).then((result) async {
+        )
+            .then((result) async {
           if (result.errorCode != 0) {
             ZegoLoggerService.logError(
               'failed to login room:${result.errorCode},${result.extendedData}',
@@ -698,7 +712,7 @@ class _ZegoUIKitPrebuiltCallState extends State<ZegoUIKitPrebuiltCall>
         .getBeautyPlugin()
         .init(
           widget.appID,
-           widget.appSign,
+          widget.appSign,
           // licence: widget.config.beauty?.license?.call() ?? '',
         )
         .then((value) {
@@ -1116,49 +1130,90 @@ class _ZegoUIKitPrebuiltCallState extends State<ZegoUIKitPrebuiltCall>
     extraInfo[ZegoViewBuilderMapExtraInfoKey.isVirtualUser.name] =
         isWaitingCallAccept;
 
-    final foregroundWidget = Stack(
-      children: [
-        widget.config.audioVideoView.foregroundBuilder
-                ?.call(context, size, user, extraInfo) ??
-            Container(color: Colors.transparent),
-        ZegoCallAudioVideoForeground(
-          size: size,
-          user: user,
-          showMicrophoneStateOnView:
-              widget.config.audioVideoView.showMicrophoneStateOnView,
-          showCameraStateOnView:
-              widget.config.audioVideoView.showCameraStateOnView,
-          showUserNameOnView: widget.config.audioVideoView.showUserNameOnView,
-        ),
-        isWaitingCallAccept
-            ? widget.config.audioVideoView.waitingCallAcceptForegroundBuilder
-                    ?.call(context, size, user, extraInfo) ??
-                ZegoWaitingCallAcceptAudioVideoForeground(
-                  size: size,
-                  user: user,
-                  invitationID: ZegoUIKitPrebuiltCallInvitationService()
-                      .private
-                      .currentCallInvitationDataSafe
-                      .invitationID,
-                  cancelData: ZegoCallInvitationCancelRequestProtocol(
-                    callID: ZegoUIKitPrebuiltCallInvitationService()
-                        .private
-                        .currentCallInvitationDataSafe
-                        .callID,
-                    customData: '',
-                  ).toJson(),
-                  invitationInnerText: ZegoUIKitPrebuiltCallInvitationService()
-                      .private
-                      .innerText,
-                )
-            : Container(color: Colors.transparent),
-      ],
-    );
-
     return ValueListenableBuilder(
       valueListenable: waitingAcceptUserNotifier,
       builder: (context, _, __) {
-        return foregroundWidget;
+        return ValueListenableBuilder<Map<String, ZegoStreamQualityLevel>>(
+          valueListenable: ZegoNetworkMonitor().userNetworkQuality,
+          builder: (context, networkQualityMap, _) {
+            final userID = user?.id ?? '';
+            if (userID.isEmpty) {
+              return Stack(
+                children: [
+                  widget.config.audioVideoView.foregroundBuilder
+                          ?.call(context, size, user, extraInfo) ??
+                      Container(color: Colors.transparent),
+                ],
+              );
+            }
+
+            final quality = networkQualityMap[userID];
+            final isBadNetwork = quality == ZegoStreamQualityLevel.Bad ||
+                quality == ZegoStreamQualityLevel.Die ||
+                quality == ZegoStreamQualityLevel.Unknown;
+
+            return Stack(
+              children: [
+                widget.config.audioVideoView.foregroundBuilder
+                        ?.call(context, size, user, extraInfo) ??
+                    Container(color: Colors.transparent),
+                ZegoCallAudioVideoForeground(
+                  size: size,
+                  user: user,
+                  showMicrophoneStateOnView:
+                      widget.config.audioVideoView.showMicrophoneStateOnView,
+                  showCameraStateOnView:
+                      widget.config.audioVideoView.showCameraStateOnView,
+                  showUserNameOnView:
+                      widget.config.audioVideoView.showUserNameOnView,
+                ),
+                isWaitingCallAccept
+                    ? widget.config.audioVideoView
+                            .waitingCallAcceptForegroundBuilder
+                            ?.call(context, size, user, extraInfo) ??
+                        ZegoWaitingCallAcceptAudioVideoForeground(
+                          size: size,
+                          user: user,
+                          invitationID: ZegoUIKitPrebuiltCallInvitationService()
+                              .private
+                              .currentCallInvitationDataSafe
+                              .invitationID,
+                          cancelData: ZegoCallInvitationCancelRequestProtocol(
+                            callID: ZegoUIKitPrebuiltCallInvitationService()
+                                .private
+                                .currentCallInvitationDataSafe
+                                .callID,
+                            customData: '',
+                          ).toJson(),
+                          invitationInnerText:
+                              ZegoUIKitPrebuiltCallInvitationService()
+                                  .private
+                                  .innerText,
+                        )
+                    : Container(color: Colors.transparent),
+                if (isBadNetwork && !isWaitingCallAccept)
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        'Reconnecting...${quality != null ? "($quality)" : ""}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          decoration: TextDecoration.none,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        );
       },
     );
   }
