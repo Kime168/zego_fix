@@ -1191,25 +1191,25 @@ class _ZegoUIKitPrebuiltCallState extends State<ZegoUIKitPrebuiltCall>
                                   .innerText,
                         )
                     : Container(color: Colors.transparent),
-                if (isBadNetwork && !isWaitingCallAccept)
-                  Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        'Reconnecting...${quality != null ? "($quality)" : ""}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          decoration: TextDecoration.none,
-                        ),
-                      ),
-                    ),
-                  ),
+                // if (isBadNetwork && !isWaitingCallAccept)
+                //   Center(
+                //     child: Container(
+                //       padding: const EdgeInsets.symmetric(
+                //           horizontal: 8, vertical: 4),
+                //       decoration: BoxDecoration(
+                //         color: Colors.black.withOpacity(0.5),
+                //         borderRadius: BorderRadius.circular(4),
+                //       ),
+                //       child: Text(
+                //         'Reconnecting...${quality != null ? "($quality)" : ""}',
+                //         style: const TextStyle(
+                //           color: Colors.white,
+                //           fontSize: 12,
+                //           decoration: TextDecoration.none,
+                //         ),
+                //       ),
+                //     ),
+                //   ),
               ],
             );
           },
